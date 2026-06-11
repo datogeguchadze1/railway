@@ -1,0 +1,54 @@
+<div class="auth-bg">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="auth-logo-icon">🚂</span>
+          <span class="auth-logo-text">STEP<strong>RAILWAY</strong></span>
+        </div>
+        <h1>ანგარიშის შექმნა</h1>
+        <p class="auth-sub">შეავსეთ ყველა სავალდებულო ველი</p>
+
+        <div class="scroll-fields">
+          <div class="form-row">
+            <div class="field"><label>სახელი *</label><input type="text" [(ngModel)]="firstName" placeholder="გიორგი" /></div>
+            <div class="field"><label>გვარი *</label><input type="text" [(ngModel)]="lastName" placeholder="ბერიძე" /></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>ასაკი *</label><input type="number" [(ngModel)]="age" placeholder="25" min="1" max="120" /></div>
+            <div class="field">
+              <label>სქესი *</label>
+              <select [(ngModel)]="gender">
+                <option value="">აირჩიეთ</option>
+                <option value="MALE">მამრობითი</option>
+                <option value="FEMALE">მდედრობითი</option>
+                <option value="OTHER">სხვა</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>ელ-ფოსტა *</label><input type="email" [(ngModel)]="email" placeholder="john@doe.com" /></div>
+          <div class="field">
+            <label>პაროლი *</label>
+            <div class="pass-wrap">
+              <input [type]="showPass ? 'text' : 'password'" [(ngModel)]="password" placeholder="min 8 სიმბოლო" />
+              <button class="pass-toggle" type="button" (click)="showPass=!showPass">{{ showPass?'🙈':'👁' }}</button>
+            </div>
+          </div>
+          <div class="field"><label>მისამართი *</label><input type="text" [(ngModel)]="address" placeholder="თბილისი, საქართველო" /></div>
+          <div class="form-row">
+            <div class="field"><label>ტელეფონი *</label><input type="text" [(ngModel)]="phone" placeholder="+995599123456" /></div>
+            <div class="field"><label>ZIP კოდი *</label><input type="text" [(ngModel)]="zipcode" placeholder="0178" /></div>
+          </div>
+          <div class="field"><label>ავატარი (URL)</label><input type="text" [(ngModel)]="avatar" placeholder="https://..." /></div>
+        </div>
+
+        @if (alertMsg()) {
+          <div [class]="'auth-alert ' + alertType()">{{ alertMsg() }}</div>
+        }
+
+        <button class="btn btn-accent btn-lg auth-btn" [disabled]="loading()" (click)="doSignUp()">
+          @if (loading()) { <span class="spinner"></span> გთხოვთ მოიცადოთ... }
+          @else { რეგისტრაცია }
+        </button>
+
+        <p class="auth-switch">უკვე გაქვს ანგარიში? <a routerLink="/login">შესვლა</a></p>
+      </div>
+    </div>

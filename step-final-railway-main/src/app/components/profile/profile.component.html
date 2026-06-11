@@ -1,0 +1,223 @@
+<div class="profile-page">
+
+  <!-- LEFT Sidebar -->
+  <aside class="profile-side">
+
+    <!-- User Card -->
+    <div class="user-card card">
+      <div class="avatar-ring">
+        <img [src]="avatarSrc()" alt="avatar" (error)="onAvatarError($event)" />
+      </div>
+      <div class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
+      <div class="user-email">{{ user()?.email }}</div>
+      @if (user()?.verified) {
+        <span class="badge badge-success">✔ ვერიფიცირებული</span>
+      } @else {
+        <span class="badge badge-error">✖ არ არის ვერიფიცირებული</span>
+      }
+    </div>
+
+    <!-- Tickets Card -->
+    <div class="tickets-card card">
+      <div class="tickets-header">
+        <h3 class="card-section-title">🎫 ჩემი ბილეთები</h3>
+        <button class="refresh-btn" (click)="loadTickets()" title="განახლება">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Global msg -->
+      @if (ticketMsg()?.id === 'global') {
+        <div [class]="'ticket-global-msg ' + ticketMsg()!.type">
+          {{ ticketMsg()!.text }}
+        </div>
+      }
+
+      @if (loadingTickets()) {
+        <div class="ticket-loading">
+          <div class="mini-spinner"></div>
+          <span>იტვირთება...</span>
+        </div>
+      } @else if (tickets().length === 0) {
+        <div class="no-tickets">
+          <span class="no-ticket-icon">🎟</span>
+          <p>ბილეთები ვერ მოიძებნა</p>
+        </div>
+      } @else {
+        <div class="tickets-list">
+          @for (t of tickets(); track getTicketId(t)) {
+
+            <div class="ticket-item" [class.cancelling]="cancellingId() === getTicketId(t)">
+
+              <!-- Route Row -->
+              <div class="ticket-route-row">
+                <div class="t-station from">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary-light)" stroke="none">
+                    <circle cx="12" cy="12" r="8"/>
+                  </svg>
+                  {{ getTicketFrom(t) }}
+                </div>
+                <div class="t-arrow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+                <div class="t-station to">
+                  {{ getTicketTo(t) }}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--success)" stroke="none">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Meta Row -->
+              <div class="ticket-meta-row">
+                @if (t.date) {
+                  <span class="t-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    {{ formatDate(t.date) }}
+                  </span>
+                }
+                @if (getPassengers(t).length > 0) {
+                  <span class="t-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    {{ getPassengers(t).length }} მგზავრი
+                  </span>
+                }
+              </div>
+
+              <!-- Status + ID -->
+              <div class="ticket-status-row">
+                @if (t.paymentCompleted) {
+                  <span class="badge badge-success">✔ გადახდილი</span>
+                } @else {
+                  <span class="badge badge-warning">⏳ მოლოდინი</span>
+                }
+                @if (getTicketId(t)) {
+                  <span class="t-id">{{ getTicketId(t) | slice:0:8 }}...</span>
+                }
+              </div>
+
+              <!-- Inline msg for this ticket -->
+              @if (ticketMsg() && ticketMsg()!.id === getTicketId(t)) {
+                <div [class]="'ticket-inline-msg ' + ticketMsg()!.type">
+                  {{ ticketMsg()!.text }}
+                </div>
+              }
+
+              <!-- Actions -->
+              <div class="ticket-actions">
+                <button class="t-btn t-btn-check"
+                        [disabled]="checkingId() === getTicketId(t)"
+                        (click)="checkTicket(t)">
+                  @if (checkingId() === getTicketId(t)) {
+                    <div class="mini-spinner"></div>
+                  } @else {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                  }
+                  შემოწმება
+                </button>
+                <button class="t-btn t-btn-cancel"
+                        [disabled]="cancellingId() === getTicketId(t)"
+                        (click)="cancelTicket(t)">
+                  @if (cancellingId() === getTicketId(t)) {
+                    <div class="mini-spinner"></div>
+                  } @else {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    </svg>
+                  }
+                  გაუქმება
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </aside>
+
+  <!-- RIGHT: Edit Forms -->
+  <div class="profile-main">
+
+    <!-- Update Profile -->
+    <div class="card form-section">
+      <h2 class="section-title">პროფილის რედაქტირება</h2>
+      @if (updateAlert()) {
+        <div [class]="'form-alert ' + updateAlertType()">{{ updateAlert() }}</div>
+      }
+      <div class="form-grid">
+        <div class="field"><label>სახელი</label><input type="text" [(ngModel)]="f.firstName" /></div>
+        <div class="field"><label>გვარი</label><input type="text" [(ngModel)]="f.lastName" /></div>
+        <div class="field"><label>ასაკი</label><input type="number" [(ngModel)]="f.age" /></div>
+        <div class="field">
+          <label>სქესი</label>
+          <select [(ngModel)]="f.gender">
+            <option value="MALE">მამრობითი</option>
+            <option value="FEMALE">მდედრობითი</option>
+            <option value="OTHER">სხვა</option>
+          </select>
+        </div>
+        <div class="field full"><label>ელ-ფოსტა</label><input type="email" [(ngModel)]="f.email" /></div>
+        <div class="field full"><label>მისამართი</label><input type="text" [(ngModel)]="f.address" /></div>
+        <div class="field"><label>ტელეფონი</label><input type="text" [(ngModel)]="f.phone" /></div>
+        <div class="field"><label>ZIP</label><input type="text" [(ngModel)]="f.zipcode" /></div>
+        <div class="field full"><label>ავატარი (URL)</label><input type="text" [(ngModel)]="f.avatar" /></div>
+      </div>
+      <button class="btn btn-primary" [disabled]="updatingProfile()" (click)="doUpdate()">
+        @if (updatingProfile()) { <span class="btn-spinner"></span> }
+        ცვლილებების შენახვა
+      </button>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card form-section">
+      <h2 class="section-title">პაროლის შეცვლა</h2>
+      @if (passAlert()) {
+        <div [class]="'form-alert ' + passAlertType()">{{ passAlert() }}</div>
+      }
+      <div class="pass-fields">
+        <div class="field">
+          <label>ძველი პაროლი</label>
+          <div class="pass-wrap">
+            <input [type]="showOld?'text':'password'" [(ngModel)]="cpOld" placeholder="••••••••" />
+            <button class="pass-toggle" type="button" (click)="showOld=!showOld">{{showOld?'🙈':'👁'}}</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>ახალი პაროლი</label>
+          <div class="pass-wrap">
+            <input [type]="showNew?'text':'password'" [(ngModel)]="cpNew" placeholder="min 8 სიმბოლო" />
+            <button class="pass-toggle" type="button" (click)="showNew=!showNew">{{showNew?'🙈':'👁'}}</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>გაიმეორე ახალი პაროლი</label>
+          <div class="pass-wrap">
+            <input [type]="showConf?'text':'password'" [(ngModel)]="cpConf" placeholder="••••••••" />
+            <button class="pass-toggle" type="button" (click)="showConf=!showConf">{{showConf?'🙈':'👁'}}</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-danger" [disabled]="changingPass()" (click)="doChangePass()">
+        @if (changingPass()) { <span class="btn-spinner"></span> }
+        პაროლის შეცვლა
+      </button>
+    </div>
+
+  </div>
+</div>
